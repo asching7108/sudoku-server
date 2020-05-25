@@ -28,6 +28,7 @@
 		"knex": "^0.21.1",
 		"morgan": "^1.9.1",
 		"pg": "^8.2.1",
+		"treeize": "^2.1.2",
 		"xss": "^1.0.6"
 	},
 	"devDependencies": {

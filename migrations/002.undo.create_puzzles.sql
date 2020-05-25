@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS puzzle_cells;
+
+DROP TABLE IF EXISTS puzzles;
