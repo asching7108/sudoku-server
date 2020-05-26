@@ -30,12 +30,26 @@ INSERT INTO puzzle_cells (cell_id, puzzle_id, is_default, value)
 VALUES
 	(0, 1, FALSE, 9),
 	(1, 1, TRUE, 7),
-	(2, 1, FALSE, 3);
+	(2, 1, FALSE, 3),
+	(0, 3, FALSE, 6),
+	(1, 3, TRUE, 1),
+	(2, 3, FALSE, 4);
 
 INSERT INTO records (puzzle_id, user_id, is_solved, date_solved, step_id)
 VALUES
 	(1, 2, FALSE, NULL, NULL),
 	(3, 1, FALSE, NULL, 2),
 	(2, 1, TRUE, '2020-04-06T16:15:00.000Z', 265);
+
+INSERT INTO record_snapshots (cell_id, record_id, is_default, value)
+VALUES
+	(0, 2, FALSE, null),
+	(1, 2, TRUE, 1),
+	(2, 2, FALSE, 5);
+
+INSERT INTO snapshot_notes (note_num, cell_id, record_id)
+VALUES
+	(4, 0, 2),
+	(9, 0, 2);
 
 COMMIT;

@@ -3,7 +3,7 @@ const PuzzlesService = {
 		if (!level) {
 			return `Missing 'level' in request query`;
 		}
-		level = Number.parseInt(level);
+		level = Number(level);
 		if (!level || level < 1 || level > 5) {
 			return 'Level must be a digit between 1 to 5';
 		}
@@ -26,6 +26,14 @@ const PuzzlesService = {
 	},
 
 	getPuzzleById(db, puzzle_id) {
+		return db
+			.from('puzzles')
+			.select('*')
+			.where('id', puzzle_id)
+			.first();
+	},
+
+	getPuzzleCellsById(db, puzzle_id) {
 		return db
 			.from('puzzle_cells')
 			.select(

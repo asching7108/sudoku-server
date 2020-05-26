@@ -28,17 +28,17 @@ PuzzlesRouter
 						error: 'No puzzle found'
 					});
 				}
-
+				
 				// gets puzzle cells
 				const { puzzle_id } = data;
 				res.puzzle_id = puzzle_id;
-				return PuzzlesService.getPuzzleById(
+				return PuzzlesService.getPuzzleCellsById(
 					req.app.get('db'), 
 					puzzle_id
-				);
-			})
-			.then(puzzle => {
-				res.json({ puzzle_id: res.puzzle_id, puzzle });
+				)
+					.then(puzzle => {
+						res.json({ puzzle_id: res.puzzle_id, puzzle });
+					});
 			})
 			.catch(next);
 	})

@@ -29,7 +29,22 @@ describe('Protected endpoints', () => {
 		{
 			name: 'GET /api/puzzles',
 			path: '/api/puzzles',
-			method: supertest(app).get,
+			method: supertest(app).get
+		},
+		{
+			name: 'GET /api/records',
+			path: '/api/records',
+			method: supertest(app).get
+		},
+		{
+			name: 'POST /api/records',
+			path: '/api/records',
+			method: supertest(app).post
+		},
+		{
+			name: 'POST /api/records/:record_id',
+			path: '/api/records/1',
+			method: supertest(app).get
 		}
 	];
 

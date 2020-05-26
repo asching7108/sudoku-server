@@ -76,7 +76,10 @@ describe('Puzzles Endpoints', () => {
 
 			it('responds with 200 and a random puzzle without records with the given user_id', () => {
 				const level = 3;
-				const expectedPuzzle = helpers.makeExpectedPuzzle(testPuzzles[0], testPuzzleCells);
+				const expectedPuzzle = helpers.makeExpectedPuzzle(
+					testPuzzles[0],
+					testPuzzleCells.filter(pc => pc.puzzle_id === testPuzzles[0].id)
+				);
 				return supertest(app)
 					.get(`/api/puzzles?level=${level}`)
 					.set('Authorization', helpers.makeAuthHeader(testUser))
