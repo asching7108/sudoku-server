@@ -16,7 +16,7 @@ PuzzlesRouter
 		}
 
 		// gets a random puzzle id which the user hasn't played
-		PuzzlesService.getRandomPuzzleId(
+		PuzzlesService.getRandomPuzzleIdByUser(
 			req.app.get('db'),
 			req.user.id,
 			level
@@ -28,16 +28,24 @@ PuzzlesRouter
 						error: 'No puzzle found'
 					});
 				}
-				
+
+				// gets puzzle
+				const resPuzzle = PuzzlesService.getPuzzleById(
+					req.app.get('db'),
+					data.id
+				);
 				// gets puzzle cells
-				const { puzzle_id } = data;
-				res.puzzle_id = puzzle_id;
-				return PuzzlesService.getPuzzleCellsById(
+				const resPuzzleCells = PuzzlesService.getPuzzleCellsByPuzzle(
 					req.app.get('db'), 
-					puzzle_id
-				)
-					.then(puzzle => {
-						res.json({ puzzle_id: res.puzzle_id, puzzle });
+					data.id
+				);
+				return Promise.all([resPuzzle, resPuzzleCells])
+					.then(([resPuzzle, resPuzzleCells]) => {
+						res.json({
+							puzzle_id: resPuzzle.id,
+							num_empty_cells: resPuzzle.num_empty_cells,
+							puzzle: resPuzzleCells
+						});
 					});
 			})
 			.catch(next);

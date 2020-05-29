@@ -74,6 +74,17 @@ describe('Puzzles Endpoints', () => {
 					.expect(400, { error: 'Level must be a digit between 1 to 5' });
 			})
 
+			it('responds with 200 and a random puzzle without given user_id', () => {
+				const level = 3;
+				const expectedPuzzle = helpers.makeExpectedPuzzle(
+					testPuzzles[0],
+					testPuzzleCells.filter(pc => pc.puzzle_id === testPuzzles[0].id)
+				);
+				return supertest(app)
+					.get(`/api/puzzles?level=${level}`)
+					.expect(200, expectedPuzzle);
+			})
+
 			it('responds with 200 and a random puzzle without records with the given user_id', () => {
 				const level = 3;
 				const expectedPuzzle = helpers.makeExpectedPuzzle(

@@ -39,17 +39,20 @@ function makePuzzlesArray() {
 		{
 			id: 1,
 			level: 3,
-			difficulty: 253
+			difficulty: 253,
+			num_empty_cells: 53
 		},
 		{
 			id: 2,
 			level: 5,
-			difficulty: 953
+			difficulty: 953,
+			num_empty_cells: 53
 		},
 		{
 			id: 3,
-			level: 3,
-			difficulty: 251
+			level: 1,
+			difficulty: 51,
+			num_empty_cells: 51
 		}
 	];
 }
@@ -101,6 +104,8 @@ function makeRecordsArray() {
 			id: 1,
 			puzzle_id: 1,
 			user_id: 2,
+			num_empty_cells: 53,
+			num_wrong_cells: 0,
 			is_solved: false,
 			date_solved: null,
 			step_id: null
@@ -109,6 +114,8 @@ function makeRecordsArray() {
 			id: 2,
 			puzzle_id: 3,
 			user_id: 1,
+			num_empty_cells: 51,
+			num_wrong_cells: 0,
 			is_solved: false,
 			date_solved: null,
 			step_id: 2
@@ -117,6 +124,8 @@ function makeRecordsArray() {
 			id: 3,
 			puzzle_id: 2,
 			user_id: 1,
+			num_empty_cells: 53,
+			num_wrong_cells: 0,
 			is_solved: true,
 			date_solved: '2020-04-06T16:15:00.000Z',
 			step_id: 265
@@ -130,34 +139,84 @@ function makeRecordSnapshotsArray() {
 			cell_id: 0,
 			record_id: 2,
 			is_default: false,
-			value: null
+			def_value: 8,
+			value: null,
+			has_conflict: false
 		},
 		{
 			cell_id: 1,
 			record_id: 2,
 			is_default: true,
-			value: 1
+			def_value: 1,
+			value: 1,
+			has_conflict: false
 		},
 		{
 			cell_id: 2,
 			record_id: 2,
 			is_default: false,
-			value: 5
+			def_value: 5,
+			value: 5,
+			has_conflict: false
 		}
 	];
 }
 
-function makeSnapshotNotesArray() {
+function makeSnapshotMemosArray() {
 	return [
 		{
-			note_num: 4,
+			memo_no: 1,
 			cell_id: 0,
-			record_id: 2
+			record_id: 2,
+			is_on: false
 		},
 		{
-			note_num: 9,
+			memo_no: 2,
 			cell_id: 0,
-			record_id: 2
+			record_id: 2,
+			is_on: false
+		},
+		{
+			memo_no: 3,
+			cell_id: 0,
+			record_id: 2,
+			is_on: false
+		},
+		{
+			memo_no: 4,
+			cell_id: 0,
+			record_id: 2,
+			is_on: true
+		},
+		{
+			memo_no: 5,
+			cell_id: 0,
+			record_id: 2,
+			is_on: false
+		},
+		{
+			memo_no: 6,
+			cell_id: 0,
+			record_id: 2,
+			is_on: false
+		},
+		{
+			memo_no: 7,
+			cell_id: 0,
+			record_id: 2,
+			is_on: false
+		},
+		{
+			memo_no: 8,
+			cell_id: 0,
+			record_id: 2,
+			is_on: false
+		},
+		{
+			memo_no: 9,
+			cell_id: 0,
+			record_id: 2,
+			is_on: true
 		}
 	];
 }
@@ -168,14 +227,14 @@ function makeSudokuFixtures() {
 	const testPuzzleCells = makePuzzleCellsArray();
 	const testRecords = makeRecordsArray();
 	const testSnapshots = makeRecordSnapshotsArray();
-	const testSnapshotNotes = makeSnapshotNotesArray();
+	const testSnapshotMemos = makeSnapshotMemosArray();
 	return {
 		testUsers, 
 		testPuzzles,
 		testPuzzleCells,
 		testRecords,
 		testSnapshots,
-		testSnapshotNotes
+		testSnapshotMemos
 	};
 }
 
@@ -186,10 +245,10 @@ function cleanTables(db) {
 			puzzles,
 			puzzle_cells,
 			records,
-			record_steps,
-			step_before_notes,
 			record_snapshots,
-			snapshot_notes
+			snapshot_memos,
+			record_steps,
+			step_before_memos
 			RESTART IDENTITY CASCADE`
 	);
 }
@@ -210,7 +269,7 @@ function seedUsers(db, users) {
 		);
 }
 
-function seedSudokuTables(db, users, puzzles, puzzleCells, records, snapshots, notes) {
+function seedSudokuTables(db, users, puzzles, puzzleCells, records, snapshots, memos) {
 	return db.transaction(async trx => {
 		await seedUsers(db, users);
 		await trx.into('puzzles').insert(puzzles)
@@ -231,7 +290,7 @@ function seedSudokuTables(db, users, puzzles, puzzleCells, records, snapshots, n
 			);
 		}
 		await trx.into('record_snapshots').insert(snapshots);
-		await trx.into('snapshot_notes').insert(notes);
+		await trx.into('snapshot_memos').insert(memos);
 	});
 }
 
@@ -244,50 +303,42 @@ function makeAuthHeader(user, secret = process.env.JWT_SECRET) {
 }
 
 function makeExpectedPuzzle(puzzle, puzzleCells) {
-	puzzleCells = puzzleCells.map(pc => {
-		delete pc.puzzle_id;
-		return pc;
-	});
+	const expectPuzzleCells = [];
+	puzzleCells.forEach(pc => {
+		expectPuzzleCells.push({
+			cell_id: pc.cell_id,
+			is_default: pc.is_default,
+			value: pc.value
+		});
+	})
 	return {
 		puzzle_id: puzzle.id,
-		puzzle: puzzleCells
+		puzzle: expectPuzzleCells,
+		num_empty_cells: puzzle.num_empty_cells
 	};
 }
 
 function makeExpectedRecords(records) {
 	const solved = records
-		.filter(r => r.is_solved)
-		.map(this.mapRecord);
+		.filter(r => r.is_solved);
 	const not_solved = records
-		.filter(r => !r.is_solved)
-		.map(this.mapRecord);
+		.filter(r => !r.is_solved);
 	return ({ solved, not_solved });
 }
 
-function makeExpectedRecord(record, snapshot, notes) {
+function makeExpectedRecord(record, snapshot, memos) {
 	return {
-		record: this.mapRecord(record),
+		record,
 		snapshot: snapshot.map(sc => {
+			const memoArr = memos
+				.filter(m => m.cell_id === sc.cell_id)
+				.map(m => m.is_on)
+			sc.memos = memoArr;
 			delete sc.record_id;
-			const cellNotes = notes
-				.filter(n => n.cell_id === sc.cell_id)
-				.map(n => {
-					return { num: n.note_num };
-				});
-			if (cellNotes[0]) { sc['notes'] = cellNotes; }
+			delete sc.cell_id;
 			return sc;
 		})
 	}
-}
-
-function mapRecord(record) {
-	return {
-		record_id: record.id,
-		puzzle_id: record.puzzle_id,
-		is_solved: record.is_solved,
-		date_solved: record.date_solved,
-		step_id: record.step_id
-	};
 }
 
 module.exports = {
@@ -303,6 +354,5 @@ module.exports = {
 	makeAuthHeader,
 	makeExpectedPuzzle,
 	makeExpectedRecords,
-	makeExpectedRecord,
-	mapRecord
+	makeExpectedRecord
 };

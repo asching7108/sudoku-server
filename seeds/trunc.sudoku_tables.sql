@@ -3,8 +3,8 @@ TRUNCATE
 	puzzles,
 	puzzle_cells,
 	records,
-	record_steps,
-	step_before_notes,
 	record_snapshots,
-	snapshot_notes
+	snapshot_memos,
+	record_steps,
+	step_before_memos
 	RESTART IDENTITY CASCADE;

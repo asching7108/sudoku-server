@@ -40,21 +40,21 @@ RecordsRouter
 					return res.status(400).json({ error: `Puzzle doesn't exist` });
 				}
 
-				// inserts record and record snapshot
+				// inserts record, record snapshot and snapshot memos
 				RecordsService.insertRecord(
 					req.app.get('db'),
 					req.user.id,
 					puzzle.id
 				)
-					.then(([record, snapshot]) => {
-						snapshot = snapshot.map(rc => {
-							delete rc.record_id;
-							return rc;
-						});
+					.then(([record, snapshot, memos]) => {
+						snapshot = RecordsService.serializeSnapshot(
+							snapshot, 
+							memos
+						);
 						res
 							.status(201)
 							.location(path.posix.join(req.originalUrl, `/${record.id}`))
-							.json({ record_id: record.id, snapshot });
+							.json({ record, snapshot });
 					})
 					.catch(next);
 			});
@@ -65,14 +65,14 @@ RecordsRouter
 	.all(requireAuth)
 	.all(checkRecordExist)
 	.get((req, res, next) => {
-		RecordsService.getSnapshotById(
+		RecordsService.getSnapshotByRecord(
 			req.app.get('db'),
 			req.params.record_id
 		)
-			.then(([snapshot, notes]) => {
+			.then(([snapshot, memos]) => {
 				snapshot = RecordsService.serializeSnapshot(
 					snapshot, 
-					notes
+					memos
 				);
 				res.json({ record: res.record, snapshot });
 			})

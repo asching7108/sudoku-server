@@ -50,11 +50,6 @@ describe('Protected endpoints', () => {
 
 	protectedEndpoints.forEach(endpoint => {
 		describe(endpoint.name, () => {
-			it(`responds 401 'Missing basic token' when no bearer token`, () => {
-				return endpoint.method(endpoint.path)
-					.expect(401, { error: `Missing bearer token` });
-			})
-
 			it(`responds 401 'Unauthorized request' when invalid JWT secret`, () => {
 				const validUser = testUsers[0];
 				const invalidSecret = 'bad-secret';

@@ -1,11 +1,19 @@
 const AuthService = require('../auth/auth-service');
 
+const GUEST_USER = {
+	id: 1,
+	email: 'guest@gmail.com'
+};
+
 function requireAuth(req, res, next) {
 	const authToken = req.get('Authorization') || '';
 	let bearerToken;
 
+	// if no token found, continues with the guest user
 	if (!authToken.toLowerCase().startsWith('bearer ')) {
-		return res.status(401).json({ error: 'Missing bearer token' });
+		req.user = GUEST_USER;
+		next();
+		return;
 	}
 	else {
 		bearerToken = authToken.slice(7, authToken.length);

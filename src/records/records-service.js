@@ -15,8 +15,11 @@ const RecordsService = {
 		return db
 		.from('records')
 		.select(
-			'id AS record_id',
+			'id',
 			'puzzle_id',
+			'user_id',
+			'num_empty_cells',
+			'num_wrong_cells',
 			'is_solved',
 			'date_solved',
 			'step_id'
@@ -29,44 +32,56 @@ const RecordsService = {
 			.where({ user_id });
 	},
 
-	getRecordById(db, record_id) {
+	getRecordById(db, id) {
 		return this.getAllRecords(db)
-			.where('id', record_id)
+			.where({ id })
 			.first();
 	},
 
-	getSnapshotById(db, record_id) {
+	getSnapshotByRecord(db, record_id) {
 		const resSnapshot = db
 			.from('record_snapshots')
 			.select(
 				'cell_id',
 				'is_default',
-				'value'
+				'def_value',
+				'value',
+				'has_conflict'
 			)
-			.where({ record_id });
-		const resNotes = this.getSnapshotNotesById(db, record_id);
-		return Promise.all([resSnapshot, resNotes]);
+			.where({ record_id })
+			.orderBy('cell_id');
+		const resMemos = this.getSnapshotMemosByRecord(db, record_id);
+		return Promise.all([resSnapshot, resMemos]);
 	},
 
-	getSnapshotNotesById(db, record_id) {
+	getSnapshotMemosByRecord(db, record_id) {
 		return db
-			.from('snapshot_notes')
+			.from('snapshot_memos')
 			.select(
+				'memo_no',
 				'cell_id',
-				'note_num'
+				'is_on'
 			)
-			.where({ record_id });
+			.where({ record_id })
+			.orderBy('cell_id', 'memo_no');
 	},
 
 	insertRecord(db, user_id, puzzle_id) {
-		const record = { user_id, puzzle_id };
-		const resRecord = db
-			.into('records')
-			.insert(record)
-			.returning('*')
-			.then(([record]) => record);
+		const resRecord = PuzzlesService.getPuzzleById(db, puzzle_id)
+			.then(puzzle => {
+				const record = { 
+					user_id,
+					puzzle_id,
+					num_empty_cells: puzzle.num_empty_cells
+				};
+				return db
+					.into('records')
+					.insert(record)
+					.returning('*')
+					.then(([record]) => record);
+			});
 
-		const resPuzzle = PuzzlesService.getPuzzleCellsById(db, puzzle_id);
+		const resPuzzle = PuzzlesService.getPuzzleCellsByPuzzle(db, puzzle_id);
 
 		const resSnapshot = Promise.all([resRecord, resPuzzle])
 			.then(([resRecord, resPuzzle]) => {
@@ -75,13 +90,30 @@ const RecordsService = {
 						record_id: resRecord.id,
 						cell_id: pc.cell_id,
 						is_default: pc.is_default,
-						value: pc.value
+						def_value: pc.value,
+						value: pc.is_default ? pc.value : null,
+						has_conflict: false
 					}
 				});
 				return this.insertSnapshot(db, snapshot);
 			});
 
-		return Promise.all([resRecord, resSnapshot]);
+		const resMemos = resRecord
+			.then(resRecord => {
+				const memos = [];
+				for (let i = 0; i < 81; i++) {
+					for (let j = 1; j <= 9; j++) {
+						memos.push({
+							memo_no: j,
+							cell_id: i,
+							record_id: resRecord.id
+						});
+					}
+				}
+				return this.insertSnapshotMemos(db, memos);
+			})
+
+		return Promise.all([resRecord, resSnapshot, resMemos]);
 	},
 
 	insertSnapshot(db, snapshot) {
@@ -92,21 +124,28 @@ const RecordsService = {
 			.then(snapshot => snapshot);
 	},
 
+	insertSnapshotMemos(db, memos) {
+		return db
+			.into('snapshot_memos')
+			.insert(memos)
+			.returning('*')
+			.then(memos => memos);
+	},
+
 	serializeRecords(records) {
 		const solved = records.filter(r => r.is_solved);
 		const not_solved = records.filter(r => !r.is_solved);
 		return { solved, not_solved };
 	},
 
-	serializeSnapshot(snapshot, notes) {
-		return snapshot.map(sc => {
-			const cellNotes = notes
-				.filter(n => n.cell_id === sc.cell_id)
-				.map(n => {
-					return { num: n.note_num };
-				});
-			if (cellNotes[0]) { sc['notes'] = cellNotes; }
-			return sc;
+	serializeSnapshot(snapshot, memos) {
+		return snapshot.map((sc, i) => {
+			delete sc.record_id;
+			delete sc.cell_id;
+			const memoArr = memos
+				.filter(m => m.cell_id === i)
+				.map(m => m.is_on);
+			return { memos: memoArr, ...sc };
 		});
 	}
 }

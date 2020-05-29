@@ -10,30 +10,39 @@ const PuzzlesService = {
 		return null;
 	},
 
-	getRandomPuzzleId(db, user_id, level) {
+	getAllPuzzleIdByLevel(db, level) {
 		return db
 			.from('puzzles AS p')
-			.select('p.id AS puzzle_id')
-			.leftJoin('records AS r', function() {
-				this.on('p.id', '=', 'r.puzzle_id')
-					.andOn('r.user_id', '=', user_id)
-			})
-			.where('p.level', level)
-			.whereNull('r.id')	// excludes puzzles with records
+			.select('p.id')
+			.where('p.level', level);
+	},
+
+	getRandomPuzzleIdByUser(db, user_id, level) {
+		const resPuzzles = (Number(user_id) === 1)
+			// guest user
+			? this.getAllPuzzleIdByLevel(db, level)
+			// authorized user, excludes puzzles with user records
+			: this.getAllPuzzleIdByLevel(db, level)
+					.leftJoin('records AS r', function() {
+						this.on('p.id', '=', 'r.puzzle_id')
+							.andOn('r.user_id', '=', user_id)
+					.whereNull('r.id')
+				});
+		return resPuzzles
 			.then(puzzles => 
 				puzzles[Math.floor(Math.random() * puzzles.length)]
 			);
 	},
 
-	getPuzzleById(db, puzzle_id) {
+	getPuzzleById(db, id) {
 		return db
 			.from('puzzles')
 			.select('*')
-			.where('id', puzzle_id)
+			.where({ id })
 			.first();
 	},
 
-	getPuzzleCellsById(db, puzzle_id) {
+	getPuzzleCellsByPuzzle(db, puzzle_id) {
 		return db
 			.from('puzzle_cells')
 			.select(
@@ -41,7 +50,8 @@ const PuzzlesService = {
 				'is_default',
 				'value'
 			)
-			.where({ puzzle_id });
+			.where({ puzzle_id })
+			.orderBy('cell_id');
 	}
 }
 

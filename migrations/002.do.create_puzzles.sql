@@ -2,6 +2,7 @@ CREATE TABLE puzzles (
 	id SERIAL PRIMARY KEY,
 	level INTEGER NOT NULL,
 	difficulty INTEGER NOT NULL,
+	num_empty_cells INTEGER NOT NULL,
 	is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
 	date_created TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'UTC')
 );
