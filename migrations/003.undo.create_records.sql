@@ -1,6 +1,8 @@
-DROP TABLE IF EXISTS step_before_memos;
+DROP TABLE IF EXISTS step_memos;
 
 DROP TABLE IF EXISTS record_steps;
+
+DROP TYPE IF EXISTS STEP_TYPE;
 
 DROP TABLE IF EXISTS snapshot_memos;
 

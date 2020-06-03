@@ -92,7 +92,8 @@ describe('Auth Endpoints', () => {
 				.post('/api/auth/login')
 				.send(userValidCreds)
 				.expect(200, {
-					authToken: expectToken
+					authToken: expectToken,
+					user_name: testUser.user_name
 				});
 		})
 	})

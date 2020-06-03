@@ -47,7 +47,7 @@ RecordsRouter
 					puzzle.id
 				)
 					.then(([record, snapshot, memos]) => {
-						snapshot = RecordsService.serializeSnapshot(
+						snapshot = RecordsService.serializeSnapshotCells(
 							snapshot, 
 							memos
 						);
@@ -67,14 +67,71 @@ RecordsRouter
 	.get((req, res, next) => {
 		RecordsService.getSnapshotByRecord(
 			req.app.get('db'),
-			req.params.record_id
+			res.record.id
 		)
 			.then(([snapshot, memos]) => {
-				snapshot = RecordsService.serializeSnapshot(
+				snapshot = RecordsService.serializeSnapshotCells(
 					snapshot, 
 					memos
 				);
 				res.json({ record: res.record, snapshot });
+			})
+			.catch(next);
+	})
+
+RecordsRouter
+	.route('/:record_id/steps')
+	.all(requireAuth)
+	.all(checkRecordExist)
+
+	.post(jsonBodyParser, (req, res, next) => {
+		const { steps } = req.body;
+
+		// validates steps
+		const stepsError = RecordsService.validateSteps(steps);
+		if (stepsError) {
+			return res.status(400).json({ error: stepsError });
+		}
+
+		RecordsService.insertRecordSteps(
+			req.app.get('db'),
+			res.record,
+			steps
+		)
+			.then(([record, cell, memos, updatedCells]) => {
+				updatedCells.push(RecordsService.serializeSnapshotCell(cell, memos));
+				res
+					.status(201)
+					.json({
+						record,
+						cells: updatedCells
+					});
+			})
+			.catch(next);
+	})
+
+	.patch(jsonBodyParser, (req, res, next) => {
+		const { edit_type } = req.body;
+
+		// validates edit
+		const editTypeError = RecordsService.validateEditType(res.record, edit_type);
+		if (editTypeError) {
+			return res.status(400).json({ error: editTypeError });
+		}
+
+		RecordsService.updateRecordSteps(
+			req.app.get('db'),
+			res.record,
+			edit_type
+		)
+			.then(([record, cell, memos, updatedCells]) => {
+				updatedCells.push(RecordsService.serializeSnapshotCell(cell, memos));
+				res
+					.status(200)
+					.json({
+						record,
+						cells: updatedCells
+					});
 			})
 			.catch(next);
 	})

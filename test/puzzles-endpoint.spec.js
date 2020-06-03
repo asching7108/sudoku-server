@@ -51,27 +51,27 @@ describe('Puzzles Endpoints', () => {
 				)
 			)
 
-			it('responds with 400 when missing level in request query', () => {
+			it(`responds with 400 when missing 'level' in request query`, () => {
 				return supertest(app)
 					.get(`/api/puzzles`)
 					.set('Authorization', helpers.makeAuthHeader(testUser))
 					.expect(400, { error: `Missing 'level' in request query` });
 			})
 
-			it('responds with 400 when level is not a valid number', () => {
+			it(`responds with 400 when 'level' is not a valid number`, () => {
 				const level = 'not-valid';
 				return supertest(app)
 					.get(`/api/puzzles?level=${level}`)
 					.set('Authorization', helpers.makeAuthHeader(testUser))
-					.expect(400, { error: 'Level must be a digit between 1 to 5' });
+					.expect(400, { error: `'level' must be a digit between 1 to 5` });
 			})
 
-			it('responds with 400 when level is not a digit between 1 to 5', () => {
+			it(`responds with 400 when 'level' is not a digit between 1 to 5`, () => {
 				const level = 10;
 				return supertest(app)
 					.get(`/api/puzzles?level=${level}`)
 					.set('Authorization', helpers.makeAuthHeader(testUser))
-					.expect(400, { error: 'Level must be a digit between 1 to 5' });
+					.expect(400, { error: `'level' must be a digit between 1 to 5` });
 			})
 
 			it('responds with 200 and a random puzzle without given user_id', () => {

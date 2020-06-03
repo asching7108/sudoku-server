@@ -6,5 +6,5 @@ TRUNCATE
 	record_snapshots,
 	snapshot_memos,
 	record_steps,
-	step_before_memos
+	step_memos
 	RESTART IDENTITY CASCADE;

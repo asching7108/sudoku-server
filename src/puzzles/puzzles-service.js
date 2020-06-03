@@ -5,7 +5,7 @@ const PuzzlesService = {
 		}
 		level = Number(level);
 		if (!level || level < 1 || level > 5) {
-			return 'Level must be a digit between 1 to 5';
+			return `'level' must be a digit between 1 to 5`;
 		}
 		return null;
 	},
@@ -26,12 +26,17 @@ const PuzzlesService = {
 					.leftJoin('records AS r', function() {
 						this.on('p.id', '=', 'r.puzzle_id')
 							.andOn('r.user_id', '=', user_id)
-					.whereNull('r.id')
-				});
+					})
+					.whereNull('r.id');
 		return resPuzzles
 			.then(puzzles => 
-				puzzles[Math.floor(Math.random() * puzzles.length)]
-			);
+				(!puzzles[0]) 
+					? this.getAllPuzzleIdByLevel(db, level)
+					: puzzles
+			)
+			.then(puzzles => {
+				return puzzles[Math.floor(Math.random() * puzzles.length)]
+			});
 	},
 
 	getPuzzleById(db, id) {

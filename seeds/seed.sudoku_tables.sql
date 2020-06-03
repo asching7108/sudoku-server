@@ -8,7 +8,7 @@ TRUNCATE
 	record_snapshots,
 	snapshot_memos,
 	record_steps,
-	step_before_memos
+	step_memos
 	RESTART IDENTITY CASCADE;
 
 /* 
@@ -18,8 +18,8 @@ TRUNCATE
 INSERT INTO users (email, user_name, password)
 VALUES
 	('guest@gmail.com', 'guest', '$2a$12$y2olsPjdjW9z.JtJq0np1.gPQrF4/OifnFSOLXqkJ9DXviyzbFbIe'),
-	('demo@gmail.com', 'Blair Waldorf', '$2a$12$y2olsPjdjW9z.JtJq0np1.gPQrF4/OifnFSOLXqkJ9DXviyzbFbIe'),
-	('test@gmail.com', 'Esther Lin', '$2a$12$y2olsPjdjW9z.JtJq0np1.gPQrF4/OifnFSOLXqkJ9DXviyzbFbIe');
+	('demo@gmail.com', 'Blair', '$2a$12$y2olsPjdjW9z.JtJq0np1.gPQrF4/OifnFSOLXqkJ9DXviyzbFbIe'),
+	('test@gmail.com', 'Esther', '$2a$12$y2olsPjdjW9z.JtJq0np1.gPQrF4/OifnFSOLXqkJ9DXviyzbFbIe');
 
 INSERT INTO puzzles (level, difficulty, num_empty_cells)
 VALUES

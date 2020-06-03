@@ -9,6 +9,7 @@ CREATE TABLE records (
 	is_solved BOOLEAN NOT NULL DEFAULT FALSE,
 	date_solved TIMESTAMP,
 	step_id INTEGER,
+	max_step_id INTEGER,
 	date_created TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'UTC')
 );
 
@@ -32,23 +33,30 @@ CREATE TABLE snapshot_memos (
 	PRIMARY KEY (memo_no, cell_id, record_id)
 );
 
+CREATE TYPE STEP_TYPE AS ENUM (
+	'BEFORE',
+	'AFTER'
+);
+
 CREATE TABLE record_steps (
 	step_id INTEGER NOT NULL,
 	record_id INTEGER
 		REFERENCES records(id) ON DELETE CASCADE NOT NULL,
 	cell_id INTEGER NOT NULL,
-	before_value INTEGER,
-	after_value INTEGER,
-	remove_memo_no INTEGER,
-	add_memo_no INTEGER,
+	step_type STEP_TYPE NOT NULL,
+	value INTEGER,
+	has_conflict BOOLEAN NOT NULL,
 	date_created TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
-	PRIMARY KEY (step_id, record_id)
+	PRIMARY KEY (step_id, record_id, step_type)
 );
 
-CREATE TABLE step_before_memos (
+CREATE TABLE step_memos (
+	memo_no INTEGER NOT NULL,
 	step_id INTEGER NOT NULL,
 	record_id INTEGER
 		REFERENCES records(id) ON DELETE CASCADE NOT NULL,
-	memo_no INTEGER NOT NULL,
-	PRIMARY KEY (memo_no, step_id, record_id)
+	cell_id INTEGER NOT NULL,
+	step_type STEP_TYPE NOT NULL,
+	is_on BOOLEAN NOT NULL,
+	PRIMARY KEY (memo_no, step_id, record_id, step_type)
 );
