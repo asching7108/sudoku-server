@@ -373,8 +373,6 @@ const RecordsService = {
 
 		// resets the cell conflict status and the number of wrong cells
 		if (snapshot[cell.cell_id].has_conflict) {
-			console.log('1 ' + cell.cell_id);
-			
 			record.num_wrong_cells -= 1;
 		}
 		cell.has_conflict = false;
@@ -388,13 +386,9 @@ const RecordsService = {
 				if (!sc.is_default && !sc.has_conflict) {
 					sc.has_conflict = true;
 					cellsToUpdate.push(sc);
-					console.log('2 ' + cell.cell_id);
-
 					record.num_wrong_cells += 1;
 				}
 				if (!cell.has_conflict) {
-					console.log('3 ' + cell.cell_id);
-
 					record.num_wrong_cells += 1;
 				}
 				cell.has_conflict = true;

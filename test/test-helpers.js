@@ -518,16 +518,19 @@ function makeExpectedRecords(records) {
 }
 
 function makeExpectedRecord(record, snapshot, memos) {
+	const expectedSnapshot = snapshot.map(sc => ({
+		cell_id: sc.cell_id,
+		is_default: sc.is_default,
+		value: sc.value,
+		def_value: sc.def_value,
+		has_conflict: sc.has_conflict,
+		memos: memos
+			.filter(m => m.cell_id === sc.cell_id)
+			.map(m => m.is_on),
+	}));
 	return {
 		record,
-		snapshot: snapshot.map(sc => {
-			const memoArr = memos
-				.filter(m => m.cell_id === sc.cell_id)
-				.map(m => m.is_on)
-			sc.memos = memoArr;
-			delete sc.record_id;
-			return sc;
-		})
+		snapshot: expectedSnapshot
 	}
 }
 

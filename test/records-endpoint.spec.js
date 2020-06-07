@@ -238,7 +238,7 @@ describe('Records Endpoints', () => {
 			})
 
 			it('responds with 200 and and the specified record', () => {
-				const recordId = 2;
+				const recordId = 1;
 				const expectedRecord = helpers.makeExpectedRecord(
 					testRecords[recordId - 1],
 					testSnapshots,
@@ -481,7 +481,7 @@ describe('Records Endpoints', () => {
 		})
 	})
 
-	describe.only('PATCH /api/records/:record_id/steps', () => {
+	describe('PATCH /api/records/:record_id/steps', () => {
 		const {
 			testUsers,
 			testPuzzles,
