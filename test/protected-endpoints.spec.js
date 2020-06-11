@@ -42,9 +42,24 @@ describe('Protected endpoints', () => {
 			method: supertest(app).post
 		},
 		{
-			name: 'POST /api/records/:record_id',
+			name: 'GET /api/records/:record_id',
 			path: '/api/records/1',
 			method: supertest(app).get
+		},
+		{
+			name: 'PATCH /api/records/:record_id',
+			path: '/api/records/1',
+			method: supertest(app).patch
+		},
+		{
+			name: 'POST /api/records/:record_id/steps',
+			path: '/api/records/1/steps',
+			method: supertest(app).post
+		},
+		{
+			name: 'PATCH /api/records/:record_id/steps',
+			path: '/api/records/1/steps',
+			method: supertest(app).patch
 		}
 	];
 

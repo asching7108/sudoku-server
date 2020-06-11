@@ -1,3 +1,4 @@
+const moment = require('moment');
 const PuzzlesService = require('../puzzles/puzzles-service');
 
 const RecordsService = {
@@ -7,6 +8,43 @@ const RecordsService = {
 		}
 		if (!Number(puzzle_id)) {
 			return `'puzzle_id' must be a valid number`;
+		}
+		return null;
+	},
+
+	validateDuration(duration) {
+		if (duration !== 0 && !duration) {
+			return `Missing 'duration' in request body`;
+		}
+		if (duration !== 0 && (!Number(duration) || duration < 0)) {
+			return `'duration' must be a positive number`;
+		}
+		return null;
+	},
+
+	validateUpdateCols(updateCols) {
+		if (!updateCols) {
+			return `Missing 'updateCols' in request body`;
+		}
+		if (typeof(updateCols) !== 'object') {
+			return `'updateCols' must be an object`;
+		}
+		const cols = [
+			'num_empty_cells',
+			'npm_wrong_cells',
+			'step_id',
+			'max_step_id',
+			'duration'
+		];
+		let numCols = 0;
+		for (let col of Object.keys(updateCols)) {
+			if (!cols.includes(col)) {
+				return `'${col}' in updateCols is not a valid column of records`;
+			}
+			numCols++;
+		} 
+		if (numCols === 0) {
+			return `'updateCols' must contain at least one column to update`;
 		}
 		return null;
 	},
@@ -73,12 +111,12 @@ const RecordsService = {
 			'user_id',
 			'num_empty_cells',
 			'num_wrong_cells',
-			'is_solved',
-			'date_solved',
 			'step_id',
-			'max_step_id'
+			'max_step_id',
+			'duration',
+			'date_modified'
 		)
-		.orderBy('date_solved', 'desc');
+		.orderBy('date_modified', 'desc');
 	},
 
 	getRecordsByUser(db, user_id) {
@@ -125,6 +163,8 @@ const RecordsService = {
 	},
 
 	updateRecord(db, record_id, updateCols) {
+		// change the timezone if database is not set to UTC
+		updateCols.date_modified = moment.utc().format('YYYY-MM-DDTHH:mm:ss');
 		return db
 			.from('records')
 			.update(updateCols)
@@ -244,7 +284,7 @@ const RecordsService = {
 			.andWhere('step_id', '>=', step_id);
 	},
 
-	insertRecordSteps(db, record, steps) {
+	insertRecordSteps(db, record, duration, steps) {
 		return this.getSnapshotByRecord(db, record.id)
 			.then(snapshot => {
 				const stepsObj = this.deserializeSteps(
@@ -280,6 +320,7 @@ const RecordsService = {
 				const resUpdatedCells = this.updateSnapshot(db, cellsToUpdate);
 
 				const resRecord = this.updateRecord(db, record.id, {
+					duration,
 					step_id: stepsObj.steps[1].step_id,
 					max_step_id: stepsObj.steps[1].step_id,
 					num_empty_cells: record.num_empty_cells,
@@ -290,7 +331,7 @@ const RecordsService = {
 			});
 	},
 
-	updateRecordSteps(db, record, edit_type) {
+	updateRecordSteps(db, record, edit_type, duration) {
 		const idx = (edit_type === 'UNDO') ? 0 : 1;
 		const step_type = (edit_type === 'UNDO') ? 'BEFORE' : 'AFTER';
 		const step_id = (edit_type === 'UNDO')
@@ -326,6 +367,7 @@ const RecordsService = {
 				: record.step_id + 1;
 
 				const resRecord = this.updateRecord(db, record.id, {
+					duration,
 					step_id: updateStepId,
 					num_empty_cells: record.num_empty_cells,
 					num_wrong_cells: record.num_wrong_cells
@@ -427,8 +469,11 @@ const RecordsService = {
 	},
 
 	serializeRecords(records) {
-		const solved = records.filter(r => r.is_solved);
-		const not_solved = records.filter(r => !r.is_solved);
+		const solved = [], not_solved = [];
+		records.map(r => {
+			if (r.num_empty_cells === 0 && r.num_wrong_cells === 0) { solved.push(r); }
+			else { not_solved.push(r); }
+		});
 		return { solved, not_solved };
 	},
 

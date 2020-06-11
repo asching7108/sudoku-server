@@ -151,10 +151,11 @@ function makeRecordsArray() {
 			user_id: 2,
 			num_empty_cells: 53,
 			num_wrong_cells: 0,
-			is_solved: false,
-			date_solved: null,
 			step_id: null,
-			max_step_id: null
+			max_step_id: null,
+			duration: 0,
+			date_created: '2020-04-06T16:15:05.000Z',
+			date_modified: '2020-04-06T16:15:05.000Z'
 		},
 		{
 			id: 2,
@@ -162,10 +163,11 @@ function makeRecordsArray() {
 			user_id: 1,
 			num_empty_cells: 51,
 			num_wrong_cells: 0,
-			is_solved: false,
-			date_solved: null,
 			step_id: null,
-			max_step_id: null
+			max_step_id: null,
+			duration: 0,
+			date_created: '2020-04-06T16:15:05.000Z',
+			date_modified: '2020-04-06T16:15:05.000Z'
 		},
 		{
 			id: 3,
@@ -173,10 +175,11 @@ function makeRecordsArray() {
 			user_id: 1,
 			num_empty_cells: 51,
 			num_wrong_cells: 0,
-			is_solved: false,
-			date_solved: null,
 			step_id: 2,
-			max_step_id: 2
+			max_step_id: 2,
+			duration: 65,
+			date_created: '2020-04-06T16:15:05.000Z',
+			date_modified: '2020-04-06T16:16:10.000Z'
 		},
 		{
 			id: 4,
@@ -184,10 +187,11 @@ function makeRecordsArray() {
 			user_id: 1,
 			num_empty_cells: 53,
 			num_wrong_cells: 0,
-			is_solved: true,
-			date_solved: '2020-04-06T16:15:00.000Z',
 			step_id: 265,
-			max_step_id: 265
+			max_step_id: 265,
+			duration: 485,
+			date_created: '2020-04-06T16:15:05.000Z',
+			date_modified: '2020-04-06T16:23:10.000Z'
 		}
 	];
 }
@@ -504,16 +508,17 @@ function makeExpectedPuzzle(puzzle, puzzleCells) {
 	})
 	return {
 		puzzle_id: puzzle.id,
-		puzzle: expectPuzzleCells,
-		num_empty_cells: puzzle.num_empty_cells
+		puzzle: expectPuzzleCells
 	};
 }
 
 function makeExpectedRecords(records) {
-	const solved = records
-		.filter(r => r.is_solved);
-	const not_solved = records
-		.filter(r => !r.is_solved);
+	const solved = [], not_solved = [];
+	records.map(r => {
+		delete r.date_created;
+		if (r.num_empty_cells === 0 && r.num_wrong_cells === 0) { solved.push(r); }
+		else { not_solved.push(r); }
+	});
 	return ({ solved, not_solved });
 }
 
@@ -528,6 +533,7 @@ function makeExpectedRecord(record, snapshot, memos) {
 			.filter(m => m.cell_id === sc.cell_id)
 			.map(m => m.is_on),
 	}));
+	delete record.date_created;
 	return {
 		record,
 		snapshot: expectedSnapshot
@@ -536,7 +542,7 @@ function makeExpectedRecord(record, snapshot, memos) {
 
 function makeTestSteps() {
 	const recordId = 1;
-	const stepId = 1;
+	const duration = 15;
 	const steps = [
 		{
 			cell_id: 0,
@@ -555,7 +561,7 @@ function makeTestSteps() {
 			memos: [ false, false, false, false, false, false, false, false, false ]
 		}
 	];
-	return { recordId, stepId, steps };
+	return { recordId, duration, steps };
 }
 
 module.exports = {

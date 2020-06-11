@@ -63,15 +63,15 @@ describe('Puzzles Endpoints', () => {
 				return supertest(app)
 					.get(`/api/puzzles?level=${level}`)
 					.set('Authorization', helpers.makeAuthHeader(testUser))
-					.expect(400, { error: `'level' must be a digit between 1 to 5` });
+					.expect(400, { error: `'level' must be a digit between 1 to 6` });
 			})
 
-			it(`responds with 400 when 'level' is not a digit between 1 to 5`, () => {
+			it(`responds with 400 when 'level' is not a digit between 1 to 6`, () => {
 				const level = 10;
 				return supertest(app)
 					.get(`/api/puzzles?level=${level}`)
 					.set('Authorization', helpers.makeAuthHeader(testUser))
-					.expect(400, { error: `'level' must be a digit between 1 to 5` });
+					.expect(400, { error: `'level' must be a digit between 1 to 6` });
 			})
 
 			it('responds with 200 and a random puzzle without given user_id', () => {

@@ -4,8 +4,8 @@ const PuzzlesService = {
 			return `Missing 'level' in request query`;
 		}
 		level = Number(level);
-		if (!level || level < 1 || level > 5) {
-			return `'level' must be a digit between 1 to 5`;
+		if (!level || level < 1 || level > 6) {
+			return `'level' must be a digit between 1 to 6`;
 		}
 		return null;
 	},

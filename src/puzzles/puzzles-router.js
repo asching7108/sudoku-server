@@ -43,7 +43,6 @@ PuzzlesRouter
 					.then(([resPuzzle, resPuzzleCells]) => {
 						res.json({
 							puzzle_id: resPuzzle.id,
-							num_empty_cells: resPuzzle.num_empty_cells,
 							puzzle: resPuzzleCells
 						});
 					});
