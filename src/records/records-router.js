@@ -64,6 +64,7 @@ RecordsRouter
 	.route('/:record_id')
 	.all(requireAuth)
 	.all(checkRecordExist)
+
 	.get((req, res, next) => {
 		RecordsService.getSnapshotByRecord(
 			req.app.get('db'),
@@ -79,13 +80,35 @@ RecordsRouter
 			.catch(next);
 	})
 
+	.patch(jsonBodyParser, (req, res, next) => {
+		const { updateCols } = req.body;
+		
+		// validates updateCols
+		const updateColsError = RecordsService.validateUpdateCols(updateCols);
+		if (updateColsError) {
+			return res.status(400).json({ error: updateColsError });
+		}
+		
+		RecordsService.updateRecord(
+			req.app.get('db'),
+			res.record.id,
+			updateCols
+		)
+			.then(record => {
+				res.json({ record });
+			})
+			.catch(next);
+	})
+
 RecordsRouter
 	.route('/:record_id/steps')
 	.all(requireAuth)
 	.all(checkRecordExist)
+	.all(jsonBodyParser)
+	.all(validateDuration)
 
-	.post(jsonBodyParser, (req, res, next) => {
-		const { steps } = req.body;
+	.post((req, res, next) => {
+		const { duration, steps } = req.body;
 
 		// validates steps
 		const stepsError = RecordsService.validateSteps(steps);
@@ -96,6 +119,7 @@ RecordsRouter
 		RecordsService.insertRecordSteps(
 			req.app.get('db'),
 			res.record,
+			duration,
 			steps
 		)
 			.then(([record, cell, memos, updatedCells]) => {
@@ -111,9 +135,9 @@ RecordsRouter
 	})
 
 	.patch(jsonBodyParser, (req, res, next) => {
-		const { edit_type } = req.body;
+		const { duration, edit_type } = req.body;
 
-		// validates edit
+		// validates edit_type
 		const editTypeError = RecordsService.validateEditType(res.record, edit_type);
 		if (editTypeError) {
 			return res.status(400).json({ error: editTypeError });
@@ -122,7 +146,8 @@ RecordsRouter
 		RecordsService.updateRecordSteps(
 			req.app.get('db'),
 			res.record,
-			edit_type
+			edit_type,
+			duration
 		)
 			.then(([record, cell, memos, updatedCells]) => {
 				updatedCells.push(RecordsService.serializeSnapshotCell(cell, memos));
@@ -158,6 +183,20 @@ function checkRecordExist(req, res, next) {
 				next();
 			})
 			.catch(next);
+	}
+	catch(error) {
+		next(error);
+	}
+}
+
+function validateDuration(req, res, next) {
+	try {
+		const { duration } = req.body;
+		const durationError = RecordsService.validateDuration(duration);
+		if (durationError) {
+			return res.status(400).json({ error: durationError });
+		}
+		next();
 	}
 	catch(error) {
 		next(error);
