@@ -25,7 +25,7 @@ app.use('/api/puzzles', PuzzlesRouter);
 app.use('/api/records', RecordsRouter);
 
 app.get('/', (req, res) => {
-	res.send('Hello, world!');
+	res.json('Hello, world!');
 });
 
 /* error handler */
