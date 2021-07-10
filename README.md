@@ -18,6 +18,9 @@ This is the server-side code for the application with Express and PostgreSQL.
 
 ## Set Up
 
+- Prerequisites:
+  - Install PostgreSQL
+  - Start PostgreSQL: `pg_ctl -D /usr/local/var/postgres start`
 - Clone this repository to your local machine: `git clone REPO-URL NEW-PROJECTS-NAME`
 - cd into the cloned repository
 - Make a fresh start of the git history for this project: `rm -rf .git && git init`
